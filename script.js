@@ -22,7 +22,7 @@ class GameOfLife {
         this.survivalRules = [2, 3];
 
         // Colors
-        this.deadColor = '#0f172a';
+        this.deadColor = 'rgba(15, 23, 42, 0)'; // Transparent/Dark
         this.gridLineColor = '#1e293b';
 
         // Chart Data
@@ -49,206 +49,27 @@ class GameOfLife {
         });
     }
 
-    createGrid() {
-        this.grid = new Array(this.rows).fill(null)
-            .map(() => new Array(this.cols).fill(0));
-        this.generation = 0;
+    resizeCanvas() {
+        const container = this.canvas.parentElement;
+        this.canvas.width = container.clientWidth;
+        this.canvas.height = container.clientHeight;
+
+        // Calculate cell size to fit grid
+        const sizeX = this.canvas.width / this.cols;
+        const sizeY = this.canvas.height / this.rows;
+        this.cellSize = Math.min(sizeX, sizeY);
+    }
+
+    resizeChart() {
+        const container = this.chartCanvas.parentElement;
+        this.chartCanvas.width = container.clientWidth;
         this.chartCanvas.height = container.clientHeight;
-    }
-
-    setupEventListeners() {
-        // Playback
-        document.getElementById('start-btn').addEventListener('click', () => this.start());
-        document.getElementById('stop-btn').addEventListener('click', () => this.stop());
-        document.getElementById('next-btn').addEventListener('click', () => this.step());
-
-        // Speed
-        const speedInput = document.getElementById('speed-range');
-        speedInput.addEventListener('input', (e) => {
-            this.speed = parseInt(e.target.value);
-        });
-
-        // Grid Settings
-        document.getElementById('resize-btn').addEventListener('click', () => {
-            const r = parseInt(document.getElementById('grid-rows').value);
-            const c = parseInt(document.getElementById('grid-cols').value);
-            if (r > 0 && c > 0) {
-                this.rows = r;
-                this.cols = c;
-                this.stop();
-                this.resizeCanvas();
-                this.createGrid();
-                this.draw();
-                this.drawChart();
-            }
-        });
-
-        // Rules
-        document.getElementById('update-rules-btn').addEventListener('click', () => {
-            const b = document.getElementById('birth-rule').value;
-            const s = document.getElementById('survival-rule').value;
-
-            this.birthRules = b.split('').map(Number);
-            this.survivalRules = s.split('').map(Number);
-        });
-
-        // Actions
-        document.getElementById('random-btn').addEventListener('click', () => {
-            this.randomize();
-            this.draw();
-        });
-
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            this.stop();
-            this.createGrid();
-            this.draw();
-            this.drawChart();
-        });
-
-        // Canvas Interaction
-        let isDrawing = false;
-
-        const getCellCoords = (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const col = Math.floor(x / this.cellSize);
-            const row = Math.floor(y / this.cellSize);
-            return { row, col };
-        };
-
-        this.canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const { row, col } = getCellCoords(e);
-            this.toggleCell(row, col);
-            this.draw();
-        });
-
-        this.canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                const { row, col } = getCellCoords(e);
-                if (this.isValidCell(row, col)) {
-                    this.grid[row][col] = 1;
-                    this.draw();
-                }
-            }
-        });
-
-        window.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-    }
-
-    isValidCell(row, col) {
-        return row >= 0 && row < this.rows && col >= 0 && col < this.cols;
-    }
-
-    toggleCell(row, col) {
-        if (this.isValidCell(row, col)) {
-            this.grid[row][col] = this.grid[row][col] ? 0 : 1;
-        }
-    }
-
-    randomize() {
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                this.grid[r][c] = Math.random() > 0.8 ? 1 : 0;
-            }
-        }
-        this.generation = 0;
-        this.populationHistory = [];
-        this.updateStats();
-    }
-
-    start() {
-        if (!this.isRunning) {
-            this.isRunning = true;
-            document.getElementById('start-btn').disabled = true;
-            document.getElementById('stop-btn').disabled = false;
-            this.lastFrameTime = performance.now();
-            this.loop();
-        }
-    }
-
-    stop() {
-        this.isRunning = false;
-        document.getElementById('start-btn').disabled = false;
-        document.getElementById('stop-btn').disabled = true;
-        cancelAnimationFrame(this.animationId);
-    }
-
-    loop(currentTime) {
-        if (!this.isRunning) return;
-
-        this.animationId = requestAnimationFrame((t) => this.loop(t));
-
-        const deltaTime = currentTime - this.lastFrameTime;
-
-        if (deltaTime > this.speed) {
-            this.step();
-            this.lastFrameTime = currentTime;
-        }
-    }
-
-    step() {
-        const newGrid = this.grid.map(arr => [...arr]);
-        let population = 0;
-
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                const neighbors = this.countNeighbors(r, c);
-                const isAlive = this.grid[r][c] === 1;
-
-                if (isAlive) {
-                    if (this.survivalRules.includes(neighbors)) {
-                        newGrid[r][c] = 1;
-                        population++;
-                    } else {
-                        newGrid[r][c] = 0;
-                    }
-                } else {
-                    if (this.birthRules.includes(neighbors)) {
-                        newGrid[r][c] = 1;
-                        population++;
-                    }
-                }
-            }
-        }
-
-        this.grid = newGrid;
-        this.generation++;
-        this.updateStats(population);
-        this.draw();
-    }
-
-    countNeighbors(row, col) {
-        let count = 0;
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (i === 0 && j === 0) continue;
-
-                const r = row + i;
-                const c = col + j;
-
-                if (this.isValidCell(r, c)) {
-                    count += this.grid[r][c];
-                }
-            }
-        }
-        return count;
-        window.addEventListener('resize', () => {
-            this.resizeCanvas();
-            this.resizeChart();
-            this.draw();
-            this.drawChart();
-        });
     }
 
     createGrid() {
         this.grid = new Array(this.rows).fill(null)
             .map(() => new Array(this.cols).fill(0));
         this.generation = 0;
-        this.chartCanvas.height = container.clientHeight;
     }
 
     setupEventListeners() {
@@ -451,8 +272,7 @@ class GameOfLife {
 
     draw() {
         // Clear
-        this.ctx.fillStyle = this.deadColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Create Gradient
         const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
