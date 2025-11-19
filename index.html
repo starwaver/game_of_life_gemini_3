@@ -8,79 +8,147 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <div class="container">
-        <header>
+    <div class="background-mesh"></div>
+
+    <div class="app-container">
+        <!-- Header / Title -->
+        <header class="glass-panel header-panel">
+            <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
             <h1>Game of Life</h1>
         </header>
 
-        <main>
-            <div class="controls-sidebar">
-                <div class="control-group">
-                    <h3>Playback</h3>
-                    <div class="button-row">
-                        <button id="start-btn" class="primary-btn">Start</button>
-                        <button id="stop-btn" class="secondary-btn" disabled>Stop</button>
-                        <button id="next-btn" class="secondary-btn">Next</button>
-                    </div>
-                    <div class="input-group">
-                        <label for="speed-range">Speed</label>
-                        <input type="range" id="speed-range" min="10" max="1000" value="100" step="10">
-                    </div>
+        <!-- Main Canvas Area -->
+        <div class="canvas-wrapper glass-panel">
+            <canvas id="grid-canvas"></canvas>
+        </div>
+
+        <!-- Controls Sidebar -->
+        <aside class="glass-panel controls-panel">
+
+            <!-- Playback Controls -->
+            <div class="control-section">
+                <h2>Playback</h2>
+                <div class="playback-buttons">
+                    <button id="start-btn" class="icon-btn" title="Start">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                    <button id="stop-btn" class="icon-btn" title="Stop" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    </button>
+                    <button id="next-btn" class="icon-btn" title="Next Generation">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                            <line x1="19" y1="5" x2="19" y2="19"></line>
+                        </svg>
+                    </button>
                 </div>
 
-                <div class="control-group">
-                    <h3>Grid Settings</h3>
-                    <div class="input-row">
-                        <div class="input-wrapper">
-                            <label for="grid-rows">Rows</label>
-                            <input type="number" id="grid-rows" value="50" min="10" max="200">
-                        </div>
-                        <div class="input-wrapper">
-                            <label for="grid-cols">Cols</label>
-                            <input type="number" id="grid-cols" value="50" min="10" max="200">
-                        </div>
-                    </div>
-                    <button id="resize-btn" class="action-btn">Resize Grid</button>
+                <div class="slider-group">
+                    <label for="speed-range">
+                        <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Speed
+                    </label>
+                    <input type="range" id="speed-range" min="10" max="1000" value="100" step="10">
                 </div>
+            </div>
 
-                <div class="control-group">
-                    <h3>Rules</h3>
+            <!-- Grid Settings -->
+            <div class="control-section">
+                <h2>Grid</h2>
+                <div class="input-grid">
                     <div class="input-wrapper">
-                        <label for="birth-rule">Birth (e.g., 3)</label>
+                        <label>Rows</label>
+                        <input type="number" id="grid-rows" value="50" min="10" max="200">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Cols</label>
+                        <input type="number" id="grid-cols" value="50" min="10" max="200">
+                    </div>
+                </div>
+                <button id="resize-btn" class="text-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                    </svg>
+                    Resize
+                </button>
+            </div>
+
+            <!-- Rules -->
+            <div class="control-section">
+                <h2>Rules</h2>
+                <div class="input-grid">
+                    <div class="input-wrapper">
+                        <label>Birth</label>
                         <input type="text" id="birth-rule" value="3">
                     </div>
                     <div class="input-wrapper">
-                        <label for="survival-rule">Survival (e.g., 23)</label>
+                        <label>Survival</label>
                         <input type="text" id="survival-rule" value="23">
                     </div>
-                    <button id="update-rules-btn" class="action-btn">Update Rules</button>
                 </div>
+                <button id="update-rules-btn" class="text-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Update
+                </button>
+            </div>
 
-                <div class="control-group">
-                    <h3>Actions</h3>
-                    <div class="button-row">
-                        <button id="random-btn" class="action-btn">Randomize</button>
-                        <button id="clear-btn" class="danger-btn">Clear</button>
-                    </div>
-                </div>
-
-                <div class="stats">
-                    <p>Generation: <span id="generation-count">0</span></p>
-                    <p>Population: <span id="population-count">0</span></p>
-                    <div class="chart-container">
-                        <canvas id="chart-canvas"></canvas>
-                    </div>
+            <!-- Actions -->
+            <div class="control-section">
+                <h2>Actions</h2>
+                <div class="action-buttons">
+                    <button id="random-btn" class="text-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Random
+                    </button>
+                    <button id="clear-btn" class="text-btn danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                        </svg>
+                        Clear
+                    </button>
                 </div>
             </div>
 
-            <div class="canvas-container">
-                <canvas id="grid-canvas"></canvas>
+            <!-- Stats -->
+            <div class="control-section stats-section">
+                <div class="stat-item">
+                    <span class="stat-label">Generation</span>
+                    <span id="generation-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Population</span>
+                    <span id="population-count" class="stat-value">0</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-canvas"></canvas>
+                </div>
             </div>
-        </main>
+
+        </aside>
     </div>
     <script src="script.js"></script>
 </body>
